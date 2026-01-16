@@ -1,0 +1,23 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "resources": [
+    {
+      "type": "Microsoft.Web/serverfarms",
+      "apiVersion": "2025-03-01",
+      "name": "AamirarmAppServicePlan",
+      "location": "West US 2",
+      "sku": { "name": "F1", "capacity": 1 },
+      "properties": { "name": "AamirarmAppServicePlan" }
+    },
+    {
+      "type": "Microsoft.Web/sites",
+      "apiVersion": "2025-03-01",
+      "name": "AamirarmWebAppDemo",
+      "location": "West US 2",
+      "properties": {
+        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', 'AamirarmAppServicePlan')]"
+      }
+    }
+  ]
+}

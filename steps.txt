@@ -1,0 +1,13 @@
+location westus2
+
+For webapp-arm.json
+az deployment group create --resource-group AamirIaCLabRG --template-file webapp-arm.json
+
+For webapp.bicep
+az deployment group create --resource-group AamirIaCLabRG --template-file webapp.bicep
+
+For deploy-iac.ps1
+
+Install
+ winget install --id Microsoft.Bicep
+.\deploy-iac.ps1
