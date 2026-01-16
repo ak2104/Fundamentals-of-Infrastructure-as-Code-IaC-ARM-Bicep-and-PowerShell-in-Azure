@@ -24,14 +24,6 @@ pipeline {
                         echo Deploying resources using Azure CLI...
                         echo =============================================
 
-                        :: Set Azure CLI Environment Variables
-                        set AZURE_CLIENT_ID=%AZURE_CLIENT_ID%
-                        set AZURE_CLIENT_SECRET=%AZURE_CLIENT_SECRET%
-                        set AZURE_TENANT_ID=%AZURE_TENANT_ID%
-                        set AZURE_SUBSCRIPTION_ID=%AZURE_SUBSCRIPTION_ID%
-
-                        echo Azure CLI will authenticate automatically using the environment variables.
-
                         :: Check Azure CLI version
                         az --version
 
