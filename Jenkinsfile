@@ -2,10 +2,10 @@ pipeline {
     agent any
 
     environment {
-        AZURE_CLIENT_ID       = credentials('AZURE_CLIENT_ID')
-        AZURE_CLIENT_SECRET   = credentials('AZURE_CLIENT_SECRET')
-        AZURE_TENANT_ID       = credentials('AZURE_TENANT_ID')
-        AZURE_SUBSCRIPTION_ID = credentials('AZURE_SUBSCRIPTION_ID')
+        AZURE_CLIENT_ID       = credentials('AZURE_CLIENT_ID')        // Service Principal Client ID
+        AZURE_CLIENT_SECRET   = credentials('AZURE_CLIENT_SECRET')    // Service Principal Client Secret
+        AZURE_TENANT_ID       = credentials('AZURE_TENANT_ID')        // Azure Tenant ID
+        AZURE_SUBSCRIPTION_ID = credentials('AZURE_SUBSCRIPTION_ID')  // Azure Subscription ID
     }
 
     stages {
@@ -17,62 +17,33 @@ pipeline {
 
         stage('Deploy IaC with Azure CLI') {
             steps {
-                timeout(time: 10, unit: 'MINUTES') {
+                timeout(time: 30, unit: 'MINUTES') {
                     bat '''
                         @echo off
                         echo =============================================
-                        echo Starting Azure IaC Deployment with Service Principal
+                        echo Deploying resources using Azure CLI...
                         echo =============================================
 
-                        cd /d "%WORKSPACE%" || exit /b 1
+                        :: Set Azure CLI Environment Variables
+                        set AZURE_CLIENT_ID=%AZURE_CLIENT_ID%
+                        set AZURE_CLIENT_SECRET=%AZURE_CLIENT_SECRET%
+                        set AZURE_TENANT_ID=%AZURE_TENANT_ID%
+                        set AZURE_SUBSCRIPTION_ID=%AZURE_SUBSCRIPTION_ID%
 
-                        echo Current directory:
-                        cd
+                        echo Azure CLI will authenticate automatically using the environment variables.
 
-                        echo.
-                        echo Files in current directory:
-                        dir
-
-                        echo.
-                        echo Checking if already logged in to Azure...
-                        az account show || (
-                            echo Not logged in. Performing az login...
-                            az login --service-principal ^
-                                -u %AZURE_CLIENT_ID% ^
-                                -p %AZURE_CLIENT_SECRET% ^
-                                --tenant %AZURE_TENANT_ID% || (
-                                    echo ERROR: Azure login failed! Check credential ID, values, or role assignment.
-                                    exit /b 1
-                                )
-                        )
-
-                        echo.
-                        echo Current Azure subscription:
-                        az account show
-
-                        echo.
-                        echo Checking Azure CLI version...
+                        :: Check Azure CLI version
                         az --version
 
-                        echo.
-                        echo Installing/updating Bicep CLI...
-                        az bicep install --version latest || exit /b 1
+                        :: Ensure subscription is set to the correct one
+                        az account set --subscription %AZURE_SUBSCRIPTION_ID%
 
-                        echo.
-                        echo Bicep version:
-                        bicep --version
-
-                        echo.
-                        echo =============================================
-                        echo Deploying Bicep template...
-                        echo =============================================
+                        :: Deploy resources using Azure CLI (e.g., Bicep)
                         az deployment group create ^
-                            --resource-group AamirIaCLabRG ^
-                            --template-file webapp.bicep ^
-                            --verbose ^
-                            --name "Jenkins-IaC-Deployment-%BUILD_NUMBER%" || exit /b 1
+                            --resource-group YourResourceGroup ^
+                            --template-file template.bicep ^
+                            --verbose || exit /b 1
 
-                        echo.
                         echo Deployment finished successfully.
                     '''
                 }
@@ -84,9 +55,9 @@ pipeline {
                 bat '''
                     @echo off
                     echo =============================================
-                    echo Listing resources in AamirIaCLabRG
+                    echo Listing resources in YourResourceGroup
                     echo =============================================
-                    az resource list --resource-group AamirIaCLabRG --output table || (
+                    az resource list --resource-group YourResourceGroup --output table || (
                         echo ERROR: Resource listing failed!
                         exit /b 1
                     )
