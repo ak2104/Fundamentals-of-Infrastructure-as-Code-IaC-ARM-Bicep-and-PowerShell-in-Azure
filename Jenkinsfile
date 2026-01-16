@@ -24,7 +24,7 @@ pipeline {
                         echo Deploying resources using Azure CLI...
                         echo =============================================
 
-                        :: Debug: Check if the environment variables are set correctly
+                        :: Debugging: Check if the environment variables are set correctly
                         echo AZURE_CLIENT_ID=%AZURE_CLIENT_ID%
                         echo AZURE_CLIENT_SECRET=%AZURE_CLIENT_SECRET%
                         echo AZURE_TENANT_ID=%AZURE_TENANT_ID%
@@ -44,7 +44,7 @@ pipeline {
                         az deployment group create ^
                             --resource-group YourResourceGroup ^
                             --template-file template.bicep ^
-                            --verbose || exit /b 1
+                            --verbose || (echo ERROR: Deployment failed! && exit /b 1)
 
                         echo Deployment finished successfully.
                     '''
