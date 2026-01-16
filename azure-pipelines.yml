@@ -1,43 +1,58 @@
+# azure-pipelines.yml - Azure CLI version (recommended)
+
 trigger:
   branches:
     include:
-      - main  # Trigger on pushes to main
+      - main
 
 pool:
   name: Default
-  #vmImage: 'windows-latest'  # Use Windows agent for PowerShell compatibility
 
 variables:
   resourceGroupName: 'AamirIaCLabRG'
   templateFile: 'webapp.bicep'
-  azureSubscription: 'AamirAzureConnection'  # Matches your service connection name
+  azureSubscription: 'aamir-iac-service-conn'
 
 steps:
-- checkout: self  # Checkout your repo code
-
-- task: AzurePowerShell@5
-  inputs:
-    azureSubscription: '$(azureSubscription)'
-    ScriptType: 'InlineScript'
-    Inline: |
-      # Install Bicep CLI if needed (Azure PowerShell agents often need this for .bicep files)
-      Invoke-WebRequest -Uri "https://github.com/Azure/bicep/releases/latest/download/bicep-setup-win-x64.exe" -OutFile "bicep-setup.exe"
-      .\bicep-setup.exe /quiet
-      $env:Path += ";$env:USERPROFILE\.azure\bin"
-      bicep --version  # Verify
-
-      # Run your deployment script
-      Write-Host "Starting IaC deployment..."
-      .\deploy-iac.ps1 -ResourceGroupName "$$   (resourceGroupName)" -TemplateFile "   $$(templateFile)"
-
-    azurePowerShellVersion: 'LatestVersion'
-  displayName: 'Deploy IaC with PowerShell'
+- checkout: self
+  clean: true
 
 - task: AzureCLI@2
+  displayName: 'Install Bicep & Deploy Infrastructure'
   inputs:
     azureSubscription: '$(azureSubscription)'
-    scriptType: 'pscore'  # Use PowerShell Core
+    scriptType: 'pscore'
     scriptLocation: 'inlineScript'
     inlineScript: |
-      az resource list --resource-group $(resourceGroupName) --output table
-  displayName: 'Verify Deployed Resources'
+      # Move to source directory
+      cd "$(System.DefaultWorkingDirectory)"
+
+      # Debug - show files
+      Write-Host "Current directory: $(Get-Location)"
+      Write-Host "Files present:"
+      Get-ChildItem -Force
+
+      # Make sure Bicep is installed
+      az bicep install --version latest
+      bicep --version
+
+      # Deploy Bicep template
+      Write-Host "`nDeploying Bicep template..."
+      az deployment group create `
+        --resource-group "$(resourceGroupName)" `
+        --template-file "$(templateFile)" `
+        --verbose `
+        --name "IaC-Deployment-$(Build.BuildId)"
+
+      Write-Host "`nDeployment finished."
+
+- task: AzureCLI@2
+  displayName: 'List Deployed Resources'
+  inputs:
+    azureSubscription: '$(azureSubscription)'
+    scriptType: 'pscore'
+    scriptLocation: 'inlineScript'
+    inlineScript: |
+      az resource list `
+        --resource-group "$(resourceGroupName)" `
+        --output table
