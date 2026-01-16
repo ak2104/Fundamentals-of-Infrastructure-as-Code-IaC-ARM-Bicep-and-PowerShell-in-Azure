@@ -11,3 +11,5 @@ For deploy-iac.ps1
 Install
  winget install --id Microsoft.Bicep
 .\deploy-iac.ps1
+
+Install-Module -Name Az -Repository PSGallery -Force -AllowClobber -Scope AllUsers

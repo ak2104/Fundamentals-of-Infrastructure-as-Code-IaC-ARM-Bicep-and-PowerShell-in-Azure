@@ -1,0 +1,42 @@
+trigger:
+  branches:
+    include:
+      - main  # Trigger on pushes to main
+
+pool:
+  vmImage: 'windows-latest'  # Use Windows agent for PowerShell compatibility
+
+variables:
+  resourceGroupName: 'AamirIaCLabRG'
+  templateFile: 'webapp.bicep'
+  azureSubscription: 'AamirAzureConnection'  # Matches your service connection name
+
+steps:
+- checkout: self  # Checkout your repo code
+
+- task: AzurePowerShell@5
+  inputs:
+    azureSubscription: '$(azureSubscription)'
+    ScriptType: 'InlineScript'
+    Inline: |
+      # Install Bicep CLI if needed (Azure PowerShell agents often need this for .bicep files)
+      Invoke-WebRequest -Uri "https://github.com/Azure/bicep/releases/latest/download/bicep-setup-win-x64.exe" -OutFile "bicep-setup.exe"
+      .\bicep-setup.exe /quiet
+      $env:Path += ";$env:USERPROFILE\.azure\bin"
+      bicep --version  # Verify
+
+      # Run your deployment script
+      Write-Host "Starting IaC deployment..."
+      .\deploy-iac.ps1 -ResourceGroupName "$$   (resourceGroupName)" -TemplateFile "   $$(templateFile)"
+
+    azurePowerShellVersion: 'LatestVersion'
+  displayName: 'Deploy IaC with PowerShell'
+
+- task: AzureCLI@2
+  inputs:
+    azureSubscription: '$(azureSubscription)'
+    scriptType: 'pscore'  # Use PowerShell Core
+    scriptLocation: 'inlineScript'
+    inlineScript: |
+      az resource list --resource-group $(resourceGroupName) --output table
+  displayName: 'Verify Deployed Resources'
