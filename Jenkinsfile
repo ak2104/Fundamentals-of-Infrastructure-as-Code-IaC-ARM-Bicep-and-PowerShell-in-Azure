@@ -34,14 +34,17 @@ pipeline {
                         dir
 
                         echo.
-                        echo Logging in to Azure with Service Principal...
-                        az login --service-principal ^
-                            -u %AZURE_CLIENT_ID% ^
-                            -p %AZURE_CLIENT_SECRET% ^
-                            --tenant %AZURE_TENANT_ID% || (
-                                echo ERROR: Azure login failed! Check credential ID, values, or role assignment.
-                                exit /b 1
-                            )
+                        echo Checking if already logged in to Azure...
+                        az account show || (
+                            echo Not logged in. Performing az login...
+                            az login --service-principal ^
+                                -u %AZURE_CLIENT_ID% ^
+                                -p %AZURE_CLIENT_SECRET% ^
+                                --tenant %AZURE_TENANT_ID% || (
+                                    echo ERROR: Azure login failed! Check credential ID, values, or role assignment.
+                                    exit /b 1
+                                )
+                        )
 
                         echo.
                         echo Current Azure subscription:
