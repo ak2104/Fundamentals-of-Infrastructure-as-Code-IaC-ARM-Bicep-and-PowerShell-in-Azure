@@ -11,7 +11,7 @@ pool:
 variables:
   resourceGroupName: 'AamirIaCLabRG'
   templateFile: 'webapp.bicep'
-  azureSubscription: 'aamir-iac-service-conn'
+  azureSubscription: 'AamirAzureConnection'
 
 steps:
 - checkout: self
