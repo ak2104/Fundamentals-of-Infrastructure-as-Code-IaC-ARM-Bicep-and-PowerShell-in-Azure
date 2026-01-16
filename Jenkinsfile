@@ -24,10 +24,20 @@ pipeline {
                         echo Deploying resources using Azure CLI...
                         echo =============================================
 
+                        :: Debug: Check if the environment variables are set correctly
+                        echo AZURE_CLIENT_ID=%AZURE_CLIENT_ID%
+                        echo AZURE_CLIENT_SECRET=%AZURE_CLIENT_SECRET%
+                        echo AZURE_TENANT_ID=%AZURE_TENANT_ID%
+                        echo AZURE_SUBSCRIPTION_ID=%AZURE_SUBSCRIPTION_ID%
+
                         :: Check Azure CLI version
                         az --version
 
+                        :: Debugging authentication with Azure CLI
+                        az account show || (echo ERROR: Azure authentication failed! && exit /b 1)
+
                         :: Ensure subscription is set to the correct one
+                        echo Setting Azure subscription...
                         az account set --subscription %AZURE_SUBSCRIPTION_ID%
 
                         :: Deploy resources using Azure CLI (e.g., Bicep)
