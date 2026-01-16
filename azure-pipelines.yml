@@ -4,7 +4,8 @@ trigger:
       - main  # Trigger on pushes to main
 
 pool:
-  vmImage: 'windows-latest'  # Use Windows agent for PowerShell compatibility
+  name: Default
+  #vmImage: 'windows-latest'  # Use Windows agent for PowerShell compatibility
 
 variables:
   resourceGroupName: 'AamirIaCLabRG'
