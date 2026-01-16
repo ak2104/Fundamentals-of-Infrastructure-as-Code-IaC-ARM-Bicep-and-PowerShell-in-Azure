@@ -38,7 +38,7 @@ pipeline {
 
                         :: Ensure subscription is set to the correct one
                         echo Setting Azure subscription...
-                        az account set --subscription %AZURE_SUBSCRIPTION_ID%
+                        az account set --subscription %AZURE_SUBSCRIPTION_ID% || (echo ERROR: Subscription authentication failed! && exit /b 1)
 
                         :: Deploy resources using Azure CLI (e.g., Bicep)
                         az deployment group create ^
